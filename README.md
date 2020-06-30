@@ -106,7 +106,7 @@
 
 1. prometheus.yml
     ```
-      # Recommended version: 2.15+
+    # Recommended version: 2.15+
       - targets: ['192.168.10.50:9100','192.168.10.51:9100']
         labels:
           env: 'Linux'
