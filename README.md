@@ -106,6 +106,7 @@
 
 1. prometheus.yml
     ```
+      # version : 2.19
       - targets: ['192.168.10.50:9100','192.168.10.51:9100']
         labels:
           env: 'Linux'
