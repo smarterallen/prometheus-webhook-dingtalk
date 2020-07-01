@@ -44,7 +44,7 @@
 ##### 安装步骤
 1. 解压包
     ```
-   tar -zxvf prometheus-webhook-dingtalk-v1.0.linux-amd64.tar.gz  -C /usr/local/
+   tar -zxvf prometheus-webhook-dingtalk-v1.1.linux-amd64.tar.gz  -C /usr/local/
     ```
     
 2. 修改配置
@@ -86,7 +86,7 @@
     ```
     tee /etc/systemd/system/dingdingalert.service <<- 'EOF'
     [Unit]
-    Description=Prometheus-alertmanager-webhook-dingtalk
+    Description=Prometheus-alertmanager-dingtalk
     Documentation=https://github.com/smarterallen/prometheus-webhook-dingtalk/
     After=network.target
     [Service]
