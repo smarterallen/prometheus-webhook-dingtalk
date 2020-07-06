@@ -57,6 +57,11 @@
         # setting http requests it receives.
         Url = /alert
         
+        # Delete the unwanted label in the alarm message
+        dropLabel = "alertname,instance,job,severity,monitor,device,fstype,mountpoint"
+
+
+        
         # setting dingtalk robot alarm interface 
         # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
         DingDingUrl1 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292ad7ba655
