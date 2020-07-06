@@ -9,7 +9,7 @@
 4、支持@所有人和@多个人；
 5、解决timonwong/prometheus-webhook-dingtalk项目有时告警发不出来情况！
 6、安全，稳定，娇小
-7、过滤不多余的label
+7、过滤多余的label
 ```
 
 ---
