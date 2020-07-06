@@ -9,6 +9,7 @@
 4、支持@所有人和@多个人；
 5、解决timonwong/prometheus-webhook-dingtalk项目有时告警发不出来情况！
 6、安全，稳定，娇小
+7、过滤不多余的label
 ```
 
 ---
@@ -44,7 +45,7 @@
 ##### 安装步骤
 1. 解压包
     ```
-   tar -zxvf prometheus-webhook-dingtalk-v1.1.linux-amd64.tar.gz  -C /usr/local/
+   tar -zxvf prometheus-webhook-dingtalk-v1.2.linux-amd64.tar.gz  -C /usr/local/
     ```
     
 2. 修改配置
