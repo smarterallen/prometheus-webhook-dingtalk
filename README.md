@@ -122,14 +122,15 @@
 
 2. rules.yml
     ```
-      - alert: "CPU使用率过高"
-        expr: round(100 - ((avg by (instance,job)(irate(node_cpu_seconds_total{mode="idle"}[5m]))) *100)) > 90
-        for: 2m
+      - alert: "内存使用率过高"
+        expr: round(100- node_memory_MemFree_bytes/node_memory_MemTotal_bytes*100) > 90
+        for: 1m
         labels:
           severity: warning
         annotations:
-          summary: "CPU使用率过高"
+          summary: "内存使用率过高"
           description: "当前使用率{{ $value }}%"
+
     ```
 
 3. alertmanager.yml
