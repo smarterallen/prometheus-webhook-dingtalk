@@ -57,7 +57,7 @@
         # setting http requests it receives.
         Url = /alert
         
-        # Delete the unwanted label in the alarm message
+        # Delete the unwanted label in the alarm message(【主机标签】)
         dropLabel = "alertname,instance,job,severity,monitor,device,fstype,mountpoint"
 
 
