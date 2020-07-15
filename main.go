@@ -97,7 +97,6 @@ func main() {
 		} else {
 			break
 		}
-
 	}
 
 	initconfigfile := path.Join(dir, "file_monitor.prom")
