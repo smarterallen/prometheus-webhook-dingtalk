@@ -60,7 +60,7 @@
         # setting dingtalk robot alarm interface 
         # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
         DingDingUrl0 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292ad7ba656
-        secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfb00
+        secret0 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfb00
 
         # Whether the alarm message is @ everyone in the dingtalk group, isAtAll set "true" or "false"
         isAtAll0 = true
