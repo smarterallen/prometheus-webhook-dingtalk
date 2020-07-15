@@ -71,7 +71,7 @@ func countFile(dir string) int {
 		if osType == "windows" {
 			wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
 			tNanSeconds := wFileSys.CreationTime.Nanoseconds() /// 返回的是纳秒
-			tSec := tNanSeconds / 1e9			///秒
+			tSec := tNanSeconds / 1e9                          ///秒
 
 			if timestamp > tSec {
 				timestamp = tSec
@@ -86,13 +86,13 @@ func main() {
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	initconfigfileT := path.Join(dir, "monitor.conf")
 	configs := initConfig(initconfigfileT)
+	// configs := initConfig("monitor.conf")
 
 	var dirs []string
 	for i := 1; i > 0; i++ {
 		dirname := "dir" + strconv.Itoa(i)
 		configdir := configs[dirname]
-		errdir := os.Chdir(configdir)
-		if errdir == nil {
+		if len(configdir) > 0 {
 			dirs = append(dirs, configdir)
 		} else {
 			break
@@ -106,24 +106,36 @@ func main() {
 	for i := 0; i < len(dirs); i++ {
 		var currtime int64 = time.Now().Unix()
 		timestamp = currtime
+		errdir := os.Chdir(dirs[i])
+		if errdir != nil {
+			continue
+		}
 		num := countFile(dirs[i])
 		files := strings.Split(dirs[i], "\\")
-		filenums := cap(files) - 1
-
-		str1 := "node_file_count_nums{dirs=\"" + files[filenums] + "\"} " + strconv.Itoa(num) + "\n"
+		filenums := files[cap(files)-1]
+		filenums2 := files[cap(files)-2]
+		if filenums == "" {
+			filenums = filenums2
+		}
+		str1 := "node_file_count_nums{dirs=\"" + filenums + "\"} " + strconv.Itoa(num) + "\r\n"
 		file.Write([]byte(str1)) //写入字节切片数据
 
 		var difftime int64
 		difftime = currtime - timestamp
 		// fmt.Println(currtime, timestamp)
 
-		str2 := "node_file_time_gap{dirs=\"" + files[filenums] + "\"} " + strconv.FormatInt(difftime, 10) + "\n"
+		str2 := "node_file_time_gap{dirs=\"" + filenums + "\"} " + strconv.FormatInt(difftime, 10) + "\r\n"
 		file.WriteString(str2)
 		filenum = 0
 		timestamp = 0
 	}
 	file.Close()
-	paths := "C:\\Program Files\\wmi_exporter\\textfile_inputs\\file_monitor.prom"
+
+	var paths = "C:\\Program Files\\wmi_exporter\\textfile_inputs\\file_monitor.prom"
+	if configs["paths"] != "" {
+		paths = configs["paths"]
+	}
+
 	err2 := os.Rename(initconfigfile, paths)
 	fmt.Println(err2)
 
