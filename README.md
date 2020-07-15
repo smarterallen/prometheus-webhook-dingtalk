@@ -45,7 +45,7 @@
 ##### 安装步骤
 1. 解压包
     ```
-   tar -zxvf prometheus-webhook-dingtalk-v2.0.linux-amd64.tar.gz  -C /usr/local/
+   tar -zxvf dingdingalert-v2.0-linux-amd64.tar.gz  -C /usr/local/
     ```
     
 2. 修改配置
