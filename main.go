@@ -112,19 +112,19 @@ func main() {
 		}
 		num := countFile(dirs[i])
 		files := strings.Split(dirs[i], "\\")
-		filenums := files[cap(files)-1]
-		filenums2 := files[cap(files)-2]
-		if filenums == "" {
-			filenums = filenums2
+		dirname := files[cap(files)-1]
+		dirname2 := files[cap(files)-2]
+		if dirname == "" {
+			dirname = dirname2
 		}
-		str1 := "node_file_count_nums{dirs=\"" + filenums + "\"} " + strconv.Itoa(num) + "\r\n"
+		str1 := "node_file_count_nums{dirs=\"" + dirname + "\"} " + strconv.Itoa(num) + "\r\n"
 		file.Write([]byte(str1)) //写入字节切片数据
 
 		var difftime int64
 		difftime = currtime - timestamp
 		// fmt.Println(currtime, timestamp)
 
-		str2 := "node_file_time_gap{dirs=\"" + filenums + "\"} " + strconv.FormatInt(difftime, 10) + "\r\n"
+		str2 := "node_file_time_gap{dirs=\"" + dirname + "\"} " + strconv.FormatInt(difftime, 10) + "\r\n"
 		file.WriteString(str2)
 		filenum = 0
 		timestamp = 0
