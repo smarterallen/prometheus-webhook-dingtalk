@@ -168,6 +168,7 @@
     - name: 'warningalert'
       webhook_configs:
       - url: 'http://localhost:18089/alert0'
+      - url: 'http://localhost:18089/alert2'
     inhibit_rules:
       - source_match:
           severity: 'critical'
