@@ -1,141 +1,83 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
-	"runtime"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "log"
+    "strings"
+    "time"
+    "io/ioutil"
+    "net/http"
 )
 
-func initConfig(path string) map[string]string {
-	// 读取key=value类型的配置文件
-	config := make(map[string]string)
+const (
+    DingDingUrl = "https://oapi.dingtalk.com/robot/send?access_token=access_token"
+)
 
-	f, err := os.Open(path)
-	defer f.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	r := bufio.NewReader(f)
-	for {
-		b, _, err := r.ReadLine()
-
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			panic(err)
-		}
-		s := strings.TrimSpace(string(b))
-		index := strings.Index(s, "=")
-		if index < 0 {
-			continue
-		}
-		key := strings.TrimSpace(s[:index])
-		if len(key) == 0 {
-			continue
-		}
-		value := strings.TrimSpace(s[index+1:])
-		if len(value) == 0 {
-			continue
-		}
-		config[key] = value
-
-	}
-	return config
+type Text struct {
+    Content string `json:"content"`
 }
 
-var filenum int
-var timestamp int64
+type Msg struct {
+    MsgType string `json:"msgtype"`
+    Text    Text   `json:"text"`
+}
 
-func countFile(dir string) int {
+type Alert struct {
+    Status      string            `json:"status"`
+    Labels      map[string]string `json:"labels"`
+    Annotations map[string]string `json:"annotations"`
+    StartsAt    time.Time         `json:"startsAt"`
+    EndsAt      time.Time         `json:"endsAt"`
+}
 
-	finfos, _ := ioutil.ReadDir(dir)
-	for _, fi := range finfos {
-		path := path.Join(dir, fi.Name())
-		if fi.IsDir() {
-			countFile(path)
-			continue
-		}
-		osType := runtime.GOOS
-		fileInfo, _ := os.Stat(path)
-		if osType == "windows" {
-			wFileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
-			tNanSeconds := wFileSys.CreationTime.Nanoseconds() /// 返回的是纳秒
-			tSec := tNanSeconds / 1e9                          ///秒
+type Notification struct {
+    Version           string            `json:"version"`
+    GroupKey          string            `json:"groupKey"`
+    Status            string            `json:"status"`
+    Receiver          string            `json:"receiver"`
+    GroupLabels       map[string]string `json:"groupLabels"`
+    CommonLabels      map[string]string `json:"commonLabels"`
+    CommonAnnotations map[string]string `json:"commonAnnotations"`
+    ExternalURL       string            `json:"externalURL"`
+    Alerts            []Alert           `json:"alerts"`
+}
 
-			if timestamp > tSec {
-				timestamp = tSec
-			}
-		}
-		filenum++
-	}
-	return filenum
+func Dingtalk(w http.ResponseWriter, r *http.Request) {
+    b, _ := ioutil.ReadAll(r.Body)
+    defer r.Body.Close()
+    var notification Notification
+    log.Println(string(b))
+    json.Unmarshal(b, &notification)
+    log.Println(notification)
+    contents := []string{}
+    headers := fmt.Sprintf("group: %s  status:%s", notification.CommonLabels["group"], notification.Status)
+    log.Println(headers)
+    contents = append(contents, headers)
+    for _, each := range notification.Alerts {
+        body := fmt.Sprintf("status:%s %s", each.Status, each.Annotations["summary"])
+        contents = append(contents, body)
+    }
+    strings.Join(contents, "\n")
+    msg := Msg{
+        MsgType: "text",
+        Text: Text{
+            Content: strings.Join(contents, "\n"),
+        },
+    }
+    msgJson, _ := json.Marshal(msg)
+    req, _ := http.NewRequest("POST", DingDingUrl, bytes.NewBuffer(msgJson))
+    req.Header.Add("Content-Type", "application/json")
+    client := http.Client{}
+    res,_ := client.Do(req)
+    defer res.Body.Close()
+    body, _ := ioutil.ReadAll(res.Body)
+    log.Printf("%s\n", body)
+    fmt.Fprint(w, "hello world\n")
 }
 
 func main() {
-	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	initconfigfileT := path.Join(dir, "monitor.conf")
-	configs := initConfig(initconfigfileT)
-	// configs := initConfig("monitor.conf")
-
-	var dirs []string
-	for i := 1; i > 0; i++ {
-		dirname := "dir" + strconv.Itoa(i)
-		configdir := configs[dirname]
-		if len(configdir) > 0 {
-			dirs = append(dirs, configdir)
-		} else {
-			break
-		}
-	}
-
-	initconfigfile := path.Join(dir, "file_monitor.prom")
-	file, _ := os.OpenFile(initconfigfile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0777)
-
-	for i := 0; i < len(dirs); i++ {
-		var currtime int64 = time.Now().Unix()
-		timestamp = currtime
-		errdir := os.Chdir(dirs[i])
-		if errdir != nil {
-			continue
-		}
-		num := countFile(dirs[i])
-		files := strings.Split(dirs[i], "\\")
-		dirname := files[cap(files)-1]
-		dirname2 := files[cap(files)-2]
-		if dirname == "" {
-			dirname = dirname2
-		}
-		str1 := "node_file_count_nums{dirs=\"" + dirname + "\"} " + strconv.Itoa(num) + "\r\n"
-		file.Write([]byte(str1)) //写入字节切片数据
-
-		var difftime int64
-		difftime = currtime - timestamp
-		// fmt.Println(currtime, timestamp)
-
-		str2 := "node_file_time_gap{dirs=\"" + dirname + "\"} " + strconv.FormatInt(difftime, 10) + "\r\n"
-		file.WriteString(str2)
-		filenum = 0
-		timestamp = 0
-	}
-	file.Close()
-
-	var paths = "C:\\Program Files\\wmi_exporter\\textfile_inputs\\file_monitor.prom"
-	if configs["paths"] != "" {
-		paths = configs["paths"]
-	}
-
-	err2 := os.Rename(initconfigfile, paths)
-	fmt.Println(err2)
-
+    http.HandleFunc("/send", Dingtalk)
+    http.ListenAndServe(":8090", nil)
 }
