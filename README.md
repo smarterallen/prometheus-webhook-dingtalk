@@ -160,7 +160,7 @@
           severity: 'critical'
       - receiver: 'warningalert'
         match_re:
-          severity: 'critical'
+          severity: 'warning'|'info'
 
     receivers:
     - name: 'criticalalert'
