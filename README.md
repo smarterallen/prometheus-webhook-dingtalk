@@ -11,6 +11,7 @@
 6、安全，稳定，娇小
 7、过滤多余的label
 8、对于频繁告警的场景做了优化
+9、支持阿里云电话告警(可按级别和时间段)
 ```
 
 ---
@@ -46,54 +47,66 @@
 ##### 安装步骤
 1. 解压包
     ```
-   tar -zxvf dingdingalert-v2.1-linux-amd64.tar.gz  -C /usr/local/
+   tar -zxvf dingdingalert-v2.2-linux-amd64.tar.gz  -C /usr/local/
     ```
     
 2. 修改配置
     ```
     vim /usr/local/dingdingalert/alert.conf
-        # This setting specifies the port to use.
-        Port = 18089
-
-        # Delete the unwanted label in the alarm message
-        dropLabel = "alertname,instance,job,severity,monitor,device,fstype,mountpoint"
-
-        # setting dingtalk robot alarm interface 
-        # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
-        DingDingUrl0 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292a
-        secret0 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9
-
-        # Whether the alarm message is @ everyone in the dingtalk group, isAtAll set "true" or "false"
-        isAtAll0 = true
-        Mobile0 = ["132xx678925", "13035xx9308"]
-        # default http requests it receives. Cannot be modified!
-        # Url0 = /alert0
+    # This setting specifies the port to use.
+    Port = 18089
+    # Delete the unwanted label in the alarm message
+    dropLabel = "alertname,instance,job,severity,monitor,device,fstype,mountpoint"
 
 
-        ############################################################################
-        DingDingUrl1 = https://oapi.dingtalk.com/robot/send?access_token=1e767be4c7b770224008bd349fcf3b388e1f446b36ec4425b298aba
-        secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e
-        isAtAll1 = false
-        Mobile1 = ["132xx678925", "189xxxx8325"]
-        # Url1 = /alert1
+    # setting dingtalk robot alarm interface 
+    # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
+    DingDingUrl0 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292ad7
+    secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfxx
+    # Whether the alarm message is @ everyone in the dingtalk group, isAtAll set "true" or "false"
+    isAtAll0 = false
+    # 开启阿里云电话告警会根据Mobile列表的电话号码进行拨号
+    Mobile0 = ["132xxx78925"]
+    # default http requests it receives. Cannot be modified!
+    # Url0 = /alert0
+
+    ############################################################################
+    DingDingUrl1 = https://oapi.dingtalk.com/robot/send?access_token=1e767be4c7b770224008bd349fcf3b388e1f446b36ec4425b298aba1c180
+    secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bxxx
+    isAtAll1 = true
+    Mobile1 = []
+    # Url1 = /alert1
+
+    DingDingUrl2 = https://oapi.dingtalk.com/robot/send?access_token=88e546e65fa5f557fad5ef2d9f208e792a17736c9d1eb942d036754d4769
+    secret2 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bxxx
+    isAtAll2 = true
+    Mobile2 = []
+    # Url1 = /alert2
 
 
-        ############################################################################
-        DingDingUrl2 = https://oapi.dingtalk.com/robot/send?access_token=88e546e65fa5f557fad5ef2d9f208e792a17736c9d1eb942d036754
-        secret2 = SECfc2f185555526c78e0f95bef692a78fb445dcdd9e0d0624f93352a
-        isAtAll2 = false
-        Mobile2 = ["132xx678925", "189xxxx8325"]
-        # Url2 = /alert2
 
-        ############################################################################
-        DingDingUrl3 = https://oapi.dingtalk.com/robot/send?access_token=1e767be4c7b770224008bd349fcf3b388e1f446b36ec4425b298ab
-        secret3 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e
-        isAtAll3 = false
-        Mobile3 = ["132xx678925", "189xxxx8325"]
-        # Url3 = /alert3
+    # 是否开启阿里云电话告警,0为关闭,1为开启
+    openAlyDx=1
+    # 地域
+    ALY_RegionId=cn-hangzhou
+    # 主账号AccessKey的ID
+    ALY_AccessKeyId=
+    # 主账号密钥
+    ALY_AccessSecret=
+    # 已购买的固定号码,为空则用公共池的号码!
+    ALY_CalledShowNumber=
+    # 文本转语音(TTS)模板ID
+    ALY_TtsCode=
 
+    # 告警时间段
+    ALY_AlertTime=0~23
+    # 告警级别, 在prometheus rule定义
+    ALY_Level=severity:warning
+    # 告警每个手机号码收到来电的间隔(分钟), 防止告警轰炸! 阿里云默认限制:1次/分,15次/时,30次/天
+    ALY_AlertInterval=30
 
     ```
+    
 3. 启动 dingtalk
     ```
     nohup /usr/local/dingtalk/dingdingalert &
@@ -105,11 +118,13 @@
     Description=Prometheus-alertmanager-dingtalk
     Documentation=https://github.com/smarterallen/prometheus-webhook-dingtalk/
     After=network.target
+
     [Service]
     Type=simple
     User=root
     ExecStart=/usr/local/dingdingalert/dingdingalert
     Restart=on-failure
+
     [Install]
     WantedBy=multi-user.target
     EOF
@@ -145,36 +160,34 @@
 
 3. alertmanager.yml
     ```
-    global:
-      resolve_timeout: 5m
+global:
+  resolve_timeout: 5m
 
-    route:
-      group_by: ['alertname']
-      group_wait: 10s
-      group_interval: 10s
-      repeat_interval: 10s
-      receiver: 'criticalalert'
-      routes:
-      - receiver: 'criticalalert'
-        match:
-          severity: 'critical'
-      - receiver: 'warningalert'
-        match_re:
-          severity: 'warning'|'info.*'
+route:
+  group_by: ['alertname']
+  group_wait: 31s
+  group_interval: 3m
+  repeat_interval: 30m
+  receiver: 'serverAlert'
+  routes:
+  - receiver: 'DBAlert'
+    match_re:
+      svc: DB.*|DB|UAT-DB|UAT-DB.*
 
-    receivers:
-    - name: 'criticalalert'
-      webhook_configs:
-      - url: 'http://localhost:18089/alert1'
-    - name: 'warningalert'
-      webhook_configs:
-      - url: 'http://localhost:18089/alert0'
-      - url: 'http://localhost:18089/alert2'
-    inhibit_rules:
-      - source_match:
-          severity: 'critical'
-        target_match:
-          severity: 'warning'
-        equal: ['alertname', 'dev', 'instance']
+receivers:
+- name: 'serverAlert'
+  webhook_configs:
+  - url: 'http://localhost:18089/alert0'
+  - url: 'http://localhost:18089/alert2'
+- name: 'DBAlert'
+  webhook_configs:
+  - url: 'http://localhost:18089/alert1'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['instance']
 
     ```
