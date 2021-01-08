@@ -160,34 +160,49 @@
 
 3. alertmanager.yml
     ```
-global:
-  resolve_timeout: 5m
+    global:
+      resolve_timeout: 5m
 
-route:
-  group_by: ['alertname']
-  group_wait: 31s
-  group_interval: 3m
-  repeat_interval: 30m
-  receiver: 'serverAlert'
-  routes:
-  - receiver: 'DBAlert'
-    match_re:
-      svc: DB.*|DB|UAT-DB|UAT-DB.*
+    route:
+      group_by: ['alertname']
+      group_wait: 31s
+      group_interval: 3m
+      repeat_interval: 30m
+      receiver: 'serverAlert'
+      routes:
+      - receiver: 'DBAlert'
+        match_re:
+          svc: DB.*|DB|UAT-DB|UAT-DB.*
 
-receivers:
-- name: 'serverAlert'
-  webhook_configs:
-  - url: 'http://localhost:18089/alert0'
-  - url: 'http://localhost:18089/alert2'
-- name: 'DBAlert'
-  webhook_configs:
-  - url: 'http://localhost:18089/alert1'
+    receivers:
+    - name: 'serverAlert'
+      webhook_configs:
+      - url: 'http://localhost:18089/alert0'
+      - url: 'http://localhost:18089/alert2'
+    - name: 'DBAlert'
+      webhook_configs:
+      - url: 'http://localhost:18089/alert1'
 
-inhibit_rules:
-  - source_match:
-      severity: 'critical'
-    target_match:
-      severity: 'warning'
-    equal: ['instance']
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['instance']
 
     ```
+    
+   4. 其他重要注意点:
+    ```
+    阿里云操作:   语音服务>>国内语音单呼>>语音通知>>文本转语音模板>>添加模板>>模板内容为: 服务器告警: ${description}
+    
+    程序内部会把 rule.yml 中的 - alert: "内存使用率过高", 赋值给${description} 进行电话告警
+    
+    以下情况阿里云可能会不进行通话:
+    请勿在变量中添加特殊符号,如: # / : - %￥【】等。
+    请勿在变量中包含敏感词汇、IP地址等。
+    模板变量实际内容：必须小于20字符以内，不支持传入链接
+    
+    ```
+  
+   
