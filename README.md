@@ -152,6 +152,7 @@
         for: 1m
         labels:
           severity: warning
+          service: DB
         annotations:
           summary: "内存使用率过高"
           description: "当前使用率{{ $value }}%"
@@ -172,7 +173,7 @@
       routes:
       - receiver: 'DBAlert'
         match_re:
-          svc: DB.*|DB|UAT-DB|UAT-DB.*
+          service: DB.*|DB|UAT-DB|UAT-DB.*
 
     receivers:
     - name: 'serverAlert'
