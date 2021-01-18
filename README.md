@@ -98,7 +98,7 @@
     # 文本转语音(TTS)模板ID
     ALY_TtsCode=
 
-    # 告警时间段
+    # 告警时间段, 包括0:00点到23:59分范围内
     ALY_AlertTime=0~23
     # 告警级别, 在prometheus rule定义
     ALY_Level=severity:warning
