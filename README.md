@@ -62,7 +62,7 @@
     # setting dingtalk robot alarm interface 
     # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
     DingDingUrl0 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292ad7
-    secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfxx
+    secret0 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfxx
     # Whether the alarm message is @ everyone in the dingtalk group, isAtAll set "true" or "false"
     isAtAll0 = false
     # 开启阿里云电话告警会根据Mobile列表的电话号码进行拨号
