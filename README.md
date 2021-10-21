@@ -81,7 +81,7 @@
       - address: 127.0.0.1:9090
 
     # 支持自定义告警, 方便在脚本中执行任务失败时, 给群通知
-    #  curl 'http://192.168.10.218:18089/customs' -H 'Content-Type: application/json' -d '{"message": "## <font color=#ff0000> test 192.168.10.5  时间同步异常! </font>"}'
+    #  curl 'http://127.0.0.1:18089/customs' -H 'Content-Type: application/json' -d '{"message": "## <font color=#ff0000> test 192.168.10.5  时间同步异常! </font>"}'
 
 
     dingTalk_config:
