@@ -55,84 +55,84 @@
 2. 修改配置
     ```
     vim /usr/local/dingdingalert/alert.conf
-#  release
-mode: release
-# 指定端口
-port: 18089
+    #  release
+    mode: release
+    # 指定端口
+    port: 18089
 
-# 下面这个参数很重要, 用于自动更新值班人和识别是否工作日!  
-# 开启后会获取URL里面的key( 如/cambodia 会对因到 dingTalk_config/url_path ) , 自动更换dingTalk_config/second_mobile的电话号码
-# URL内容结构: {"/cambodia":"17727901925","/database":"13424251847","/server":"17727901925","WorkMk":"true"}
-# project: http://127.0.0.1/dingtalkserver/defaults
+    # 下面这个参数很重要, 用于自动更新值班人和识别是否工作日!  
+    # 开启后会获取URL里面的key( 如/cambodia 会对因到 dingTalk_config/url_path ) , 自动更换dingTalk_config/second_mobile的电话号码
+    # URL内容结构: {"/cambodia":"17727901925","/database":"13424251847","/server":"17727901925","WorkMk":"true"}
+    # project: http://127.0.0.1/dingtalkserver/defaults
 
-# 值班时间段0~24（0~23:59）
-alert_time: 18~9
-# 电话告警lable, 在prometheus rule定义
-alert_level: severity=critical
-# 告警每个手机号码收到来电的间隔(分钟), 防止告警轰炸! 阿里云默认限制:1次/分,15次/时,30次/天(这个可以通过添加白名单来开放限制)!
-alert_interval: 30
-# 发送值班信息时间, 秒、分、时、日、月、周, 用不上可以注释
-duty_cron: "8 30 16 * * *"
-
-
-# 3分钟检测一次
-cron_telnet:
-  - address: 127.0.0.1:9093
-  - address: 127.0.0.1:9090
-
-# 支持自定义告警, 方便在脚本中执行任务失败时, 给群通知
-#  curl 'http://192.168.10.218:18089/customs' -H 'Content-Type: application/json' -d '{"message": "## <font color=#ff0000> test 192.168.10.5  时间同步异常! </font>"}'
+    # 值班时间段0~24（0~23:59）
+    alert_time: 18~9
+    # 电话告警lable, 在prometheus rule定义
+    alert_level: severity=critical
+    # 告警每个手机号码收到来电的间隔(分钟), 防止告警轰炸! 阿里云默认限制:1次/分,15次/时,30次/天(这个可以通过添加白名单来开放限制)!
+    alert_interval: 30
+    # 发送值班信息时间, 秒、分、时、日、月、周, 用不上可以注释
+    duty_cron: "8 30 16 * * *"
 
 
-dingTalk_config:
-  # 每个告警url不能一样, 否则启动不成功, 可以不限添加URL
-  - url_path: /cambodia
-    group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908
-    secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39e3
-    at_all: true
-    # 项目负责人电话, 负责上班期的所有告警处理主要负责人!
-    main_mobile: 138888888888,132666666666
-    # 值班负责人电话, 负责值班期间(alert_time), 和project(WorkMk)所有告警处理主要负责人!
-    second_mobile: 138888888888,132666666666
+    # 3分钟检测一次
+    cron_telnet:
+      - address: 127.0.0.1:9093
+      - address: 127.0.0.1:9090
 
-  - url_path: /server
-    group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908207b4d
-    secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39
-    at_all: true
-    # 项目负责人电话
-    main_mobile: 138888888888,132666666666
-    # 值班负责人电话
-    second_mobile: 138888888888
+    # 支持自定义告警, 方便在脚本中执行任务失败时, 给群通知
+    #  curl 'http://192.168.10.218:18089/customs' -H 'Content-Type: application/json' -d '{"message": "## <font color=#ff0000> test 192.168.10.5  时间同步异常! </font>"}'
 
-  - url_path: /database
-    group_url: https://oapi.dingtalk.com/robot/send?access_token=e0455151c0883f433
-    secret: SEC9b235b39e7e53e5bc6e9a5b3eb14063d75664ee07f9e413f35f
-    at_all: false
-    # 项目负责人电话
-    main_mobile: 138888888888,132666666666
-    # 值班负责人电话
-    second_mobile: 
 
-aly_config:
-  # 是否开启阿里云电话告警: 0为关闭; 1为开启值班电话; 2为开启全天电话,正常班直接电话给 main_mobile
-  open_aly_dx: 2
-  # 地域
-  region_id: cn-hangzhou
-  # 主账号AccessKey的ID
-  access_key_id: 
-  # 主账号密钥
-  access_secret: 
-  # 已购买的固定号码,为空则用公共池的号码!
-  called_show_number:
-  # 文本转语音(TTS)模板ID
-  tts_code:
+    dingTalk_config:
+      # 每个告警url不能一样, 否则启动不成功, 可以不限添加URL
+      - url_path: /cambodia
+        group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908
+        secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39e3
+        at_all: true
+        # 项目负责人电话, 负责上班期的所有告警处理主要负责人!
+        main_mobile: 138888888888,132666666666
+        # 值班负责人电话, 负责值班期间(alert_time), 和project(WorkMk)所有告警处理主要负责人!
+        second_mobile: 138888888888,132666666666
 
-log:
-  level: "debug"
-  filename: "/usr/local/dingtalkalert/logs.log"
-  max_size: 20
-  max_age: 30
-  max_backups: 7
+      - url_path: /server
+        group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908207b4d
+        secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39
+        at_all: true
+        # 项目负责人电话
+        main_mobile: 138888888888,132666666666
+        # 值班负责人电话
+        second_mobile: 138888888888
+
+      - url_path: /database
+        group_url: https://oapi.dingtalk.com/robot/send?access_token=e0455151c0883f433
+        secret: SEC9b235b39e7e53e5bc6e9a5b3eb14063d75664ee07f9e413f35f
+        at_all: false
+        # 项目负责人电话
+        main_mobile: 138888888888,132666666666
+        # 值班负责人电话
+        second_mobile: 
+
+    aly_config:
+      # 是否开启阿里云电话告警: 0为关闭; 1为开启值班电话; 2为开启全天电话,正常班直接电话给 main_mobile
+      open_aly_dx: 2
+      # 地域
+      region_id: cn-hangzhou
+      # 主账号AccessKey的ID
+      access_key_id: 
+      # 主账号密钥
+      access_secret: 
+      # 已购买的固定号码,为空则用公共池的号码!
+      called_show_number:
+      # 文本转语音(TTS)模板ID
+      tts_code:
+
+    log:
+      level: "debug"
+      filename: "/usr/local/dingtalkalert/logs.log"
+      max_size: 20
+      max_age: 30
+      max_backups: 7
 
     ```
     
