@@ -12,6 +12,8 @@
 7、过滤多余的label
 8、对于频繁告警的场景做了优化
 9、支持阿里云电话告警(可按级别和时间段,恢复不产生电话告警)
+10, 支持自定义告警功能
+11, 支持端口检测功能
 ```
 
 ---
@@ -23,8 +25,8 @@
 【告警时间】：2020-07-29 21:53:30 
 【告警级别】：warning 
 【告警信息】：内存使用超过 95% (当前值95.49). 
-【告警主机】：110.33.60.147  
-【主机标签】：kehu-app  Linux 
+【告警主机】：110.133.160.246 
+【主机标签】：kehu-app  
 --------------------------------
 @所有人 
 
@@ -34,8 +36,8 @@
 【恢复时间】：2020-07-29 21:55:30
 【告警级别】：warning 
 【告警信息】：内存使用超过 95% (当前值95.49). 
-【恢复主机】：110.33.60.147  
-【主机标签】：kehu-app  Linux 
+【恢复主机】：110.133.160.246  
+【主机标签】：kehu-app 
 --------------------------------
 @所有人 
 ```
@@ -53,57 +55,84 @@
 2. 修改配置
     ```
     vim /usr/local/dingdingalert/alert.conf
-    # This setting specifies the port to use.
-    Port = 18089
-    # Delete the unwanted label in the alarm message
-    dropLabel = "alertname,instance,job,severity,monitor,device,fstype,mountpoint"
+#  release
+mode: release
+# 指定端口
+port: 18089
+
+# 下面这个参数很重要, 用于自动更新值班人和识别是否工作日!  
+# 开启后会获取URL里面的key( 如/cambodia 会对因到 dingTalk_config/url_path ) , 自动更换dingTalk_config/second_mobile的电话号码
+# URL内容结构: {"/cambodia":"17727901925","/database":"13424251847","/server":"17727901925","WorkMk":"true"}
+# project: http://127.0.0.1/dingtalkserver/defaults
+
+# 值班时间段0~24（0~23:59）
+alert_time: 18~9
+# 电话告警lable, 在prometheus rule定义
+alert_level: severity=critical
+# 告警每个手机号码收到来电的间隔(分钟), 防止告警轰炸! 阿里云默认限制:1次/分,15次/时,30次/天(这个可以通过添加白名单来开放限制)!
+alert_interval: 30
+# 发送值班信息时间, 秒、分、时、日、月、周, 用不上可以注释
+duty_cron: "8 30 16 * * *"
 
 
-    # setting dingtalk robot alarm interface 
-    # important: Loop reading DingDingUrl$, if DingDingUrl2 is empty, it will not continue to fetch new DingDingUrl2+
-    DingDingUrl0 = https://oapi.dingtalk.com/robot/send?access_token=6ee807cafb0b222a359604c77c555931658093fb5be2abffa5515292ad7
-    secret0 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bfxx
-    # Whether the alarm message is @ everyone in the dingtalk group, isAtAll set "true" or "false"
-    isAtAll0 = false
-    # 开启阿里云电话告警会根据Mobile列表的电话号码进行拨号
-    Mobile0 = ["132xxx78925"]
-    # default http requests it receives. Cannot be modified!
-    # Url0 = /alert0
+# 3分钟检测一次
+cron_telnet:
+  - address: 127.0.0.1:9093
+  - address: 127.0.0.1:9090
 
-    ############################################################################
-    DingDingUrl1 = https://oapi.dingtalk.com/robot/send?access_token=1e767be4c7b770224008bd349fcf3b388e1f446b36ec4425b298aba1c180
-    secret1 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bxxx
-    isAtAll1 = true
-    Mobile1 = []
-    # Url1 = /alert1
-
-    DingDingUrl2 = https://oapi.dingtalk.com/robot/send?access_token=88e546e65fa5f557fad5ef2d9f208e792a17736c9d1eb942d036754d4769
-    secret2 = SECcb7ab8a6cced933c6cfeaede70cf7f7fdd2f7c847cc3251f0d8e9ae53e4bxxx
-    isAtAll2 = true
-    Mobile2 = []
-    # Url1 = /alert2
+# 支持自定义告警, 方便在脚本中执行任务失败时, 给群通知
+#  curl 'http://192.168.10.218:18089/customs' -H 'Content-Type: application/json' -d '{"message": "## <font color=#ff0000> test 192.168.10.5  时间同步异常! </font>"}'
 
 
+dingTalk_config:
+  # 每个告警url不能一样, 否则启动不成功, 可以不限添加URL
+  - url_path: /cambodia
+    group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908
+    secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39e3
+    at_all: true
+    # 项目负责人电话, 负责上班期的所有告警处理主要负责人!
+    main_mobile: 138888888888,132666666666
+    # 值班负责人电话, 负责值班期间(alert_time), 和project(WorkMk)所有告警处理主要负责人!
+    second_mobile: 138888888888,132666666666
 
-    # 是否开启阿里云电话告警,0为关闭,1为开启,恢复不产生电话告警
-    openAlyDx=1
-    # 地域
-    ALY_RegionId=cn-hangzhou
-    # 主账号AccessKey的ID
-    ALY_AccessKeyId=
-    # 主账号密钥
-    ALY_AccessSecret=
-    # 已购买的固定号码,为空则用公共池的号码!
-    ALY_CalledShowNumber=
-    # 文本转语音(TTS)模板ID
-    ALY_TtsCode=
+  - url_path: /server
+    group_url: https://oapi.dingtalk.com/robot/send?access_token=3edc6581908207b4d
+    secret: SEC9840ba7d408c9c7f56f55a765d700ae7a965ddd1315309ab8d790d39
+    at_all: true
+    # 项目负责人电话
+    main_mobile: 138888888888,132666666666
+    # 值班负责人电话
+    second_mobile: 138888888888
 
-    # 告警时间段, 包括0:00点到23:59分范围内
-    ALY_AlertTime=0~23
-    # 告警级别, 在prometheus rule定义
-    ALY_Level=severity:warning
-    # 告警每个手机号码收到来电的间隔(分钟), 防止告警轰炸! 阿里云默认限制:1次/分,15次/时,30次/天
-    ALY_AlertInterval=30
+  - url_path: /database
+    group_url: https://oapi.dingtalk.com/robot/send?access_token=e0455151c0883f433
+    secret: SEC9b235b39e7e53e5bc6e9a5b3eb14063d75664ee07f9e413f35f
+    at_all: false
+    # 项目负责人电话
+    main_mobile: 138888888888,132666666666
+    # 值班负责人电话
+    second_mobile: 
+
+aly_config:
+  # 是否开启阿里云电话告警: 0为关闭; 1为开启值班电话; 2为开启全天电话,正常班直接电话给 main_mobile
+  open_aly_dx: 2
+  # 地域
+  region_id: cn-hangzhou
+  # 主账号AccessKey的ID
+  access_key_id: 
+  # 主账号密钥
+  access_secret: 
+  # 已购买的固定号码,为空则用公共池的号码!
+  called_show_number:
+  # 文本转语音(TTS)模板ID
+  tts_code:
+
+log:
+  level: "debug"
+  filename: "/usr/local/dingtalkalert/logs.log"
+  max_size: 20
+  max_age: 30
+  max_backups: 7
 
     ```
     
